@@ -7,6 +7,17 @@ class PersonalDetails
         @place=args[:place]
         @preferred_location=args[:preferred_location]
     end
+
+     
+    def append_to(file)
+        file.puts("Resume of #{name}")
+        file.puts("Email: #{email}")
+        file.puts("Mobile: #{mobile}")
+        file.puts("Place: #{place}")
+        file.puts("Preferred location: #{preferred_location}")
+        file.puts("\n")
+
+      end
  
 end
 
@@ -19,7 +30,15 @@ class Experience
         @exiting_date=args[:exiting_date]
 
     end
-   
+
+    def append_to(file)
+        file.puts("Experience:")
+          file.puts("Company name: #{company_name}")
+          file.puts("Current post: #{current_post}")
+          file.puts("Joining date: #{joining_date}")
+          file.puts("Exiting date: #{exiting_date}")
+          file.puts("\n")
+    end
 end
 
 
@@ -76,7 +95,22 @@ class Projects
         @technology=args[:technology]
         @description=args[:description]
     end
+
+       
+    def append_to(file)
+        file.puts("Projects:")
+          file.puts("Name: #{name}")
+          file.puts("Start date: #{start_date}")
+          file.puts("End date: #{end_date}")
+          file.puts("Github: #{github}")
+          file.puts("Link: #{link}")
+          file.puts("Technology: #{technology}")
+          file.puts("Description: #{description}")
+          file.puts("\n")
+      end
     
+
+
 end
 
 
@@ -95,13 +129,18 @@ place = gets.chomp
 puts "What is your preferred location?"
 preferred_location = gets.chomp
 
+
+
+
+
 person = PersonalDetails.new(name: name,email: email, mobile: mobile,place: place,preferred_location: preferred_location)
 
  
 
 
-experience = Experience.new(company_name:"mindfire",current_post:"software engineer",joining_date:"20-12-2022",exiting_date:"20-12-2023")
- 
+
+
+
 
 
 skill = Skill.new(name:"React Js ",level:"intermediate",duration:"1year")
@@ -119,24 +158,106 @@ training = Training.new(institution:"code better",course:"React js" , start_date
 
 
 
-projects = Projects.new(name:"Resume Builder",start_date:"1-3-2023",end_date:"2-3-2023",github:"unknown@github.com",link:"http://rubymonk.com/learning/books",technology:"reactjs",description:"make best resume!")
+
  
 
 
 
 
- class ResumeBuilder
-    def initialize(person, experience, skill, qualifications, training, projects)
+ class Resume
+    def initialize(person, skill, qualifications, training)
       @person = person
-      @experience = experience
+      @experience = []
       @skill = skill
       @qualifications = qualifications
       @training = training
-      @projects = projects
+      @project = []
     end
   
-    def create_resume(filename)
-      File.open(filename, "w") do |file|
+    # add exprience
+    def add_experience
+        keys = %i[company_name current_post joining_date exiting_date]
+        puts 'Enter Experience details'
+        args = take_input(keys)
+    
+        @experience << Experience.new(**args)
+    end
+ 
+      def add_experiences
+        expriences = []
+        repeat = true
+    
+        while repeat
+          expriences << add_experience
+    
+          print 'Want to add more exprience? (Y/N): '
+          repeat = gets.chomp.downcase
+          repeat = repeat == 'y'
+        end
+    
+         expriences
+      end
+
+
+    #   add projects
+      def add_project
+        keys = %i[name start_date end_date github link technology description]
+        puts 'Enter Projects details'
+        args = take_input(keys)
+    
+        @project << Projects.new(**args)
+      end
+ 
+      def add_projects
+        projects = []
+        repeat = true
+    
+        while repeat
+          projects << add_project
+    
+          print 'Want to add more project? (Y/N): '
+          repeat = gets.chomp.downcase
+          repeat = repeat == 'y'
+        end
+    
+         projects
+      end
+
+
+
+ 
+      def export(filename)
+        file = File.open(filename, 'w')
+    
+        @person.append_to(file)
+        @exprience.each do |element|
+            element.append_to(file)
+        end
+        @project.each do |element|
+            element.append_to(file)
+          end
+
+
+      end
+
+
+      def convert_humanize_form(string)
+        string.split('_').map(&:capitalize).join(' ')
+      end
+
+
+
+      def take_input(keys)
+        keys.each_with_object({}) do |key, hash|
+          print "#{convert_humanize_form(key.to_s)}: "
+          hash[key] = gets.chomp
+        end
+      end
+
+
+  
+      def create_resume(filename)
+        File.open(filename, "w") do |file|
         file.puts("Resume of #{@person.name}")
         file.puts("Email: #{@person.email}")
         file.puts("Mobile: #{@person.mobile}")
@@ -145,11 +266,13 @@ projects = Projects.new(name:"Resume Builder",start_date:"1-3-2023",end_date:"2-
         file.puts("\n")
   
         file.puts("Experience:")
-        file.puts("Company name: #{@experience.company_name}")
-        file.puts("Current post: #{@experience.current_post}")
-        file.puts("Joining date: #{@experience.joining_date}")
-        file.puts("Exiting date: #{@experience.exiting_date}")
+      @experience.each do |exp|
+        file.puts("Company name: #{exp.company_name}")
+        file.puts("Current post: #{exp.current_post}")
+        file.puts("Joining date: #{exp.joining_date}")
+        file.puts("Exiting date: #{exp.exiting_date}")
         file.puts("\n")
+      end
   
         file.puts("Skills:")
         file.puts("Name: #{@skill.name}")
@@ -175,23 +298,36 @@ projects = Projects.new(name:"Resume Builder",start_date:"1-3-2023",end_date:"2-
         file.puts("\n")
   
         file.puts("Projects:")
-        file.puts("Name: #{@projects.name}")
-        file.puts("Start date: #{@projects.start_date}")
-        file.puts("End date: #{@projects.end_date}")
-        file.puts("Github: #{@projects.github}")
-        file.puts("Link: #{@projects.link}")
-        file.puts("Technology: #{@projects.technology}")
-        file.puts("Description: #{@projects.description}")
-        file.puts("\n")
+        @project.each do |pro|
+            file.puts("Name: #{pro.name}")
+            file.puts("Start date: #{pro.start_date}")
+            file.puts("End date: #{pro.end_date}")
+            file.puts("Github: #{pro.github}")
+            file.puts("Link: #{pro.link}")
+            file.puts("Technology: #{pro.technology}")
+            file.puts("Description: #{pro.description}")
+            file.puts("\n")
+        end
+
+        
+     
       end
     end
   end
   
-  resume = ResumeBuilder.new(person, experience, skill, qualifications, training, projects)
-#   resume.create_resume("resumenew5.txt")
-  
+# Create a new instance of Resume
+resume = Resume.new(person, skill, qualifications, training)
 
-  File.open("resumenew5.txt", "r") {|file| puts file.read }
-  
+# Add experiences and projects
+resume.add_experiences
+resume.add_projects
+
+# Export the resume to a file called "resume.txt"
+resume.export("resume.txt")
+
+
+# also create a file like this way==>
+# resume.create_resume("resumenew6.txt")
+# File.open("resumenew6.txt", "r") {|file| puts file.read }
 
 
